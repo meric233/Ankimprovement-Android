@@ -1,3 +1,35 @@
+# Ankimprovement — Android (USMLE Step 1)
+
+The Android companion to the [Ankimprovement desktop app](https://github.com/meric233/Ankimprovement):
+a fork of **AnkiDroid** for a "speedrun" **USMLE Step 1** study app. Desktop and
+Android share **one Rust engine**, so all scoring is computed once in the backend
+and shown on both.
+
+**Who it's for:** a USMLE Step 1 student studying daily through exam day. Step 1
+is pass/fail (no numeric score since 2022-01-26). The app reports a **probability
+of passing** with a range — never an invented score.
+
+### Added in this fork
+
+- **Study dashboard** — three always-shown scores, each with a range: **Memory**
+  (mean FSRS recall), **Performance** (new-question accuracy; placeholder), and
+  **Readiness** (a calibrated **probability of passing**, not a score).
+- **Over-confidence view** — every score projected forward with no study at
+  **today / +5 days / +10 days**.
+- **Coverage map** — % of the First Aid outline seen; Readiness abstains under a
+  give-up rule (≥ 200 graded reviews *and* ≥ 50 % coverage).
+- **Forced UI randomization** — randomizes card fonts so you learn the content,
+  not a card's look (toggleable).
+- **Admin / simulation mode** — dev screen to bulk-set FSRS state, advance days,
+  and reset cards, to exercise the dashboard.
+
+> Build & emulator setup: [`docs/development/build-and-emulator-setup.md`](docs/development/build-and-emulator-setup.md).
+> Requires the custom backend AAR from the desktop side (`local_backend=true`).
+
+---
+
+*Below is the upstream AnkiDroid README.*
+
 <p align="center">
 <img alt="" src="docs/graphics/logos/banner_readme.png"/>
 </p>
