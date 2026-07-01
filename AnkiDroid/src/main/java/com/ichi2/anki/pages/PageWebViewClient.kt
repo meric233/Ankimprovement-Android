@@ -122,6 +122,7 @@ fun isSvelteKitPage(path: String): Boolean {
         "import-csv",
         "import-page",
         "image-occlusion",
+        "readiness",
         -> true
         else -> false
     }

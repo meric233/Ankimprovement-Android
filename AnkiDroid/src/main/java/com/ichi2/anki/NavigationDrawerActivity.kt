@@ -33,10 +33,14 @@ import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.navigation.NavigationView
+import com.ichi2.anki.CollectionManager.withCol
 import com.ichi2.anki.IntentHandler.Companion.grantedStoragePermissions
 import com.ichi2.anki.NoteEditorFragment.Companion.NoteEditorCaller
+import com.ichi2.anki.cardviewer.UsmleFontChooser
 import com.ichi2.anki.common.android.animationEnabled
+import com.ichi2.anki.common.destinations.AdminSimulationDestination
 import com.ichi2.anki.common.destinations.PreferencesDestination
+import com.ichi2.anki.common.destinations.ReadinessDestination
 import com.ichi2.anki.common.destinations.StatisticsDestination
 import com.ichi2.anki.common.destinations.navigate
 import com.ichi2.anki.common.preferences.sharedPrefs
@@ -200,6 +204,7 @@ abstract class NavigationDrawerActivity(
                     super.onDrawerOpened(drawerView)
                     invalidateOptionsMenu()
                     drawerBackCallback.isEnabled = true
+                    syncLearningModeMenuItem()
                 }
             }
         if (drawerLayout is ClosableDrawerLayout) {
@@ -224,6 +229,21 @@ abstract class NavigationDrawerActivity(
     @CallSuper
     protected open fun setupBackPressedCallbacks() {
         onBackPressedDispatcher.addCallback(this, drawerBackCallback)
+    }
+
+    /**
+     * USMLE project: reflect the current study mode (SPOV1) in the drawer's
+     * checkable "Long-term learning mode" item. Defaults to learning mode.
+     */
+    private fun syncLearningModeMenuItem() {
+        val item = navigationView?.menu?.findItem(R.id.nav_learning_mode) ?: return
+        launchCatchingTask {
+            val learning =
+                withCol {
+                    config.get<String>(UsmleFontChooser.STUDY_MODE_KEY, "learning")
+                } == "learning"
+            item.isChecked = learning
+        }
     }
 
     /**
@@ -325,6 +345,24 @@ abstract class NavigationDrawerActivity(
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        // USMLE project: study-mode toggle (SPOV1). Handled before the
+        // "already selected" guard below because it flips in place rather than
+        // navigating, and must be able to toggle off again.
+        if (item.itemId == R.id.nav_learning_mode) {
+            val learning = !item.isChecked
+            item.isChecked = learning
+            launchCatchingTask {
+                withCol {
+                    config.set(
+                        UsmleFontChooser.STUDY_MODE_KEY,
+                        if (learning) "learning" else "performance",
+                    )
+                }
+            }
+            closeDrawer()
+            return true
+        }
+
         // Don't do anything if user selects already selected position
         if (item.isChecked) {
             closeDrawer()
@@ -355,6 +393,16 @@ abstract class NavigationDrawerActivity(
                     R.id.nav_stats -> {
                         Timber.i("Navigating to stats")
                         openStatistics()
+                    }
+
+                    R.id.nav_readiness -> {
+                        Timber.i("Navigating to USMLE readiness")
+                        navigate(ReadinessDestination)
+                    }
+
+                    R.id.nav_admin_simulation -> {
+                        Timber.i("Navigating to USMLE admin/simulation")
+                        navigate(AdminSimulationDestination)
                     }
 
                     R.id.nav_settings -> {

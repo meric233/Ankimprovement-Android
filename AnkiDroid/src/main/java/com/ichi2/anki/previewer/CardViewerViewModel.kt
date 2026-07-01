@@ -24,6 +24,7 @@ import com.ichi2.anki.CollectionManager.withCol
 import com.ichi2.anki.OnErrorListener
 import com.ichi2.anki.cardviewer.CardMediaPlayer
 import com.ichi2.anki.cardviewer.MediaErrorHandler
+import com.ichi2.anki.cardviewer.UsmleFontChooser
 import com.ichi2.anki.launchCatchingIO
 import com.ichi2.anki.libanki.Card
 import com.ichi2.anki.libanki.TtsPlayer
@@ -135,6 +136,30 @@ abstract class CardViewerViewModel(
             withCol { media.escapeMediaFilenames(card.answer(this)) }
 
         eval.emit("_showQuestion(${Json.encodeToString(question)}, ${Json.encodeToString(answer)}, '${bodyClass()}');")
+        applyUsmleFont(reroll = true)
+    }
+
+    // USMLE project: SPOV2 difficulty-gated font randomization. See
+    // [UsmleFontChooser]. The rule is installed as a <head> <style> so it
+    // survives the innerHTML swap that _updateQA does, and is re-emitted (empty
+    // when not eligible) each side so a previous card's font never leaks through.
+    private val usmleFontChooser = UsmleFontChooser()
+
+    private suspend fun applyUsmleFont(reroll: Boolean) {
+        val card = currentCard.await()
+        val css = withCol { usmleFontChooser.cssFor(this, card, reroll) } ?: ""
+        eval.emit(
+            """(function() {
+                var id = 'usmleFontOverride';
+                var el = document.getElementById(id);
+                if (!el) {
+                    el = document.createElement('style');
+                    el.id = id;
+                    document.head.appendChild(el);
+                }
+                el.textContent = ${Json.encodeToString(css)};
+            })();""",
+        )
     }
 
     /**
@@ -155,6 +180,7 @@ abstract class CardViewerViewModel(
         val answer = mungeQA(answerData)
 
         eval.emit("_showAnswer(${Json.encodeToString(answer)}, '${bodyClass()}');")
+        applyUsmleFont(reroll = false)
     }
 
     override suspend fun handlePostRequest(

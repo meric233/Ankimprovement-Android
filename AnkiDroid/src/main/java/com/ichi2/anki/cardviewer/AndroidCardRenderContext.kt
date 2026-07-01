@@ -26,6 +26,11 @@ class AndroidCardRenderContext(
     private val cardTemplate: CardTemplate,
     private val showAudioPlayButtons: Boolean,
 ) {
+    // USMLE project: SPOV2 difficulty-gated font randomization. See
+    // [UsmleFontChooser]. Kept per-context so a card's question and answer
+    // share one font (the context outlives both sides of a card).
+    private val usmleFontChooser = UsmleFontChooser()
+
     /**
      * Renders Android-specific functionality to produce a [RenderedCard]
      */
@@ -48,17 +53,21 @@ class AndroidCardRenderContext(
         // fixes an Android bug where font-weight:600 does not display
         content = CardAppearance.fixBoldStyle(content)
 
+        // USMLE: on easy cards, force a different (harder-to-read) font.
+        val fontOverride = usmleFontChooser.cssFor(col, card, reroll = side == SingleCardSide.FRONT)
+
         // based on the content, load appropriate scripts such as MathJax, then render
-        return render(content, card.ord)
+        return render(content, card.ord, fontOverride)
     }
 
     private fun render(
         content: String,
         ord: CardOrdinal,
+        fontOverride: String?,
     ): RenderedCard {
         val requiresMathjax = MathJax.textContainsMathjax(content)
 
-        val style = cardAppearance.style
+        val style = cardAppearance.style + (fontOverride?.let { "\n$it" } ?: "")
         val script =
             when (requiresMathjax) {
                 false -> ""

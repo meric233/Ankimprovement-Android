@@ -34,3 +34,16 @@ fun Collection.getGraphPreferencesRaw(): ByteArray {
 }
 
 fun Collection.setGraphPreferencesRaw(input: ByteArray): ByteArray = backend.setGraphPreferencesRaw(input)
+
+// USMLE project: study dashboard (Memory + Coverage + calibrated Readiness).
+fun Collection.studyDashboardRaw(input: ByteArray): ByteArray = backend.studyDashboardRaw(input)
+
+// USMLE project: per-topic mastery aggregation (the "mastery query").
+fun Collection.masteryByTopicRaw(input: ByteArray): ByteArray = backend.masteryByTopicRaw(input)
+
+// USMLE project: admin / simulation mode (dev tooling; mutates the collection).
+fun Collection.adminSetFsrsRaw(input: ByteArray): ByteArray = backend.adminSetFsrsRaw(input)
+
+fun Collection.adminAdvanceDaysRaw(input: ByteArray): ByteArray = backend.adminAdvanceDaysRaw(input)
+
+fun Collection.adminResetCardsRaw(input: ByteArray): ByteArray = backend.adminResetCardsRaw(input)

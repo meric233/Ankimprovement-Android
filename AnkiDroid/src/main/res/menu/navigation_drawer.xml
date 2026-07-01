@@ -17,6 +17,22 @@
             android:id="@+id/nav_stats"
             android:icon="@drawable/ic_bar_chart_black"
             android:title="@string/statistics"/>
+        <item
+            android:id="@+id/nav_readiness"
+            android:icon="@drawable/ic_bar_chart_black"
+            android:title="@string/usmle_readiness"/>
+        <item
+            android:id="@+id/nav_admin_simulation"
+            android:icon="@drawable/ic_settings_black"
+            android:title="@string/usmle_admin_simulation"/>
+    </group>
+    <group android:id="@+id/group_usmle_mode"
+        android:checkableBehavior="none">
+        <item
+            android:id="@+id/nav_learning_mode"
+            android:checkable="true"
+            android:icon="@drawable/ic_settings_black"
+            android:title="@string/usmle_learning_mode"/>
     </group>
     <group  android:id="@+id/group2">
         <item

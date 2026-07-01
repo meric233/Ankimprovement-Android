@@ -367,6 +367,11 @@
     <string name="record_audio_permission">android.permission.RECORD_AUDIO</string>
 
 
+    <!-- USMLE project (dev feature in progress; not translated) -->
+    <string name="usmle_readiness" translatable="false">USMLE Readiness</string>
+    <string name="usmle_admin_simulation" translatable="false">USMLE Admin</string>
+    <string name="usmle_learning_mode" translatable="false">Long-term learning mode</string>
+
     <string-array name="import_cache_error_resolutions">
         <item>@string/import_error_resolution_try_again</item>
         <item>@string/import_error_resolution_free_up_space</item>

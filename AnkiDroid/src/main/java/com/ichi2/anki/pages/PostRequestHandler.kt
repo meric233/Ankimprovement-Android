@@ -42,7 +42,9 @@ import com.ichi2.anki.libanki.sched.simulateFsrsReviewRaw
 import com.ichi2.anki.libanki.stats.cardStatsRaw
 import com.ichi2.anki.libanki.stats.getGraphPreferencesRaw
 import com.ichi2.anki.libanki.stats.graphsRaw
+import com.ichi2.anki.libanki.stats.masteryByTopicRaw
 import com.ichi2.anki.libanki.stats.setGraphPreferencesRaw
+import com.ichi2.anki.libanki.stats.studyDashboardRaw
 import com.ichi2.anki.observability.undoableOp
 import com.ichi2.anki.searchInBrowser
 import kotlinx.coroutines.Deferred
@@ -101,6 +103,9 @@ val collectionMethods =
         "getGraphPreferences" to { _ -> getGraphPreferencesRaw() },
         "setGraphPreferences" to { bytes -> setGraphPreferencesRaw(bytes) },
         "graphs" to { bytes -> graphsRaw(bytes) },
+        // USMLE project additions (served to the `readiness` SvelteKit page).
+        "studyDashboard" to { bytes -> studyDashboardRaw(bytes) },
+        "masteryByTopic" to { bytes -> masteryByTopicRaw(bytes) },
         "getNotetypeNames" to { bytes -> getNotetypeNamesRaw(bytes) },
         "getDeckNames" to { bytes -> getDeckNamesRaw(bytes) },
         "getCsvMetadata" to { bytes -> getCsvMetadataRaw(bytes) },
