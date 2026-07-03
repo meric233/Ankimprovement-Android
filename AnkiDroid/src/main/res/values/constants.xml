@@ -371,6 +371,7 @@
     <string name="usmle_readiness" translatable="false">USMLE Readiness</string>
     <string name="usmle_admin_simulation" translatable="false">USMLE Admin</string>
     <string name="usmle_learning_mode" translatable="false">Long-term learning mode</string>
+    <string name="usmle_ai_rephrase" translatable="false">AI: rephrase cards</string>
 
     <string-array name="import_cache_error_resolutions">
         <item>@string/import_error_resolution_try_again</item>

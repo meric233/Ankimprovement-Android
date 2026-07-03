@@ -5,6 +5,7 @@ package com.ichi2.anki.cardviewer
 import android.content.Context
 import androidx.annotation.CheckResult
 import anki.config.ConfigKey
+import com.ichi2.anki.ai.AiRephraseController
 import com.ichi2.anki.common.preferences.sharedPrefs
 import com.ichi2.anki.libanki.Card
 import com.ichi2.anki.libanki.CardOrdinal
@@ -42,6 +43,12 @@ class AndroidCardRenderContext(
     ): RenderedCard {
         // obtain the libAnki-rendered card
         var content: String = if (side == SingleCardSide.FRONT) card.question(col) else card.answer(col)
+        // USMLE: on eligible cards, swap the QUESTION for an AI-reworded version
+        // (answer side untouched). Cache-only here so rendering never blocks on
+        // the network; a background fetch + re-render fills the cache on a miss.
+        if (side == SingleCardSide.FRONT) {
+            AiRephraseController.cachedQuestionForRender(col, card, content)?.let { content = it }
+        }
         // IRI-encodes media: `foo bar` -> `foo%20bar`
         content = col.media.escapeMediaFilenames(content)
         // produces either an <input> or <span>...</span> to denote typed input

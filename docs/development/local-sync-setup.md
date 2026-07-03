@@ -197,17 +197,79 @@ sync; AnkiDroid re-downloads the files from the server.
 
 ## 5. Verify two-way sync (project section 7b)
 
+**Precondition:** both apps must already share the same collection and be in
+normal *incremental* sync (both synced at least once, same schema, no full
+up/download pending). A schema change forces a one-directional full sync, which
+is not a merge — so only do reviews between the two syncs for this test.
+
 1. Turn off the emulator's network (airplane mode) and review ~10 cards.
-2. On desktop review ~10 different cards, then Sync (uploads).
+2. On desktop review ~10 *different* cards, then Sync (uploads).
 3. Re-enable the emulator's network and Sync.
 4. Confirm all 20 reviews are present on both sides, none lost or duplicated.
+   (Tools -> check `revlog` count, or the review counts in Stats.)
 5. Conflict case: review the *same* card on both while offline, then sync both.
 
-**Conflict rule (document this):** review-log entries are merged additively and
-have unique IDs, so no review is lost or double-counted; when the same card is
-reviewed on both devices offline, the card's current scheduling state resolves
-to whichever device syncs last (last-writer-wins for card state, all reviews
-preserved).
+### The conflict rule (verified against the engine)
+
+This is Anki's built-in rule, confirmed in
+`Ankimprovement/rslib/src/sync/collection/chunks.rs`:
+
+- **Reviews (revlog) = additive union, never overwritten.** Each review row's
+  `id` is the epoch-millisecond timestamp of that answer, so reviews from two
+  devices get distinct ids. `merge_revlog()` inserts every incoming entry, so
+  **all 20 reviews land exactly once — none lost, none double-counted.** Reviews
+  are an append-only log, so there is no "conflict" to resolve here.
+- **Card / note state = last-writer-wins by modification time (`mtime`).** When
+  the *same* card is reviewed on both devices offline, its scheduling state
+  (interval, due, reps, FSRS memory state, ...) can only take one value.
+  `add_or_update_card_if_newer()` applies the incoming version when the local
+  copy is **not** locally-modified since last sync **OR** the incoming
+  `mtime` is strictly greater than the local `mtime`. Net effect: **the review
+  with the newer wall-clock `mtime` wins**; the losing device's *card state* is
+  discarded, but its *review event is still preserved in the revlog*. A tie
+  (equal `mtime`) keeps the local copy. Notes resolve by the identical rule.
+
+**Clear winner, in one line:** *the later review (by modification timestamp)
+determines the card's scheduling state; every individual review is still
+retained in the log.* This is deterministic and needs no user prompt.
+
+> Caveat (adversarial "wrong clock" case, §11): because the winner is chosen by
+> `mtime`, a device with a badly-skewed clock could win even if it reviewed
+> "first" in real time. The reviews themselves are still never lost.
+
+### Automated verification (re-runnable)
+
+`Ankimprovement/sync_verify.py` reproduces 7b headlessly against the running
+server. It opens two throwaway client collections (A = desktop stand-in,
+B = phone stand-in), both driven by the same Rust sync engine AnkiDroid uses,
+and checks the union + conflict guarantees. Run with the server up on 27701 and
+the desktop GUI closed enough to free... (it uses its own temp collections, so
+the live collection is untouched):
+
+```bash
+cd ~/Documents/MericXing/MIT/Intern/AlphaAI/Anki/Ankimprovement
+PYTHONPATH="$PWD/out/pylib:$PWD/out/qt" out/pyenv/bin/python sync_verify.py
+```
+
+Last verified output (exit 0):
+
+```
+PART 1: 10 reviews on A + 10 different on B, then reconnect
+  expected 20 unique review ids; A has 20, B has 20
+  PART 1 PASS: all 20 reviews present on both sides, none lost, none duplicated
+
+PART 2: same card reviewed on both offline -> conflict rule
+  A reviewed card ...119: ease=Again, ivl=1,   mtime=...377
+  B reviewed card ...119: ease=Easy,  ivl=999,  mtime=...379 (later)
+  final card state: A.ivl=999, B.ivl=999  -> winner: B (later mtime)
+  both reviews of card ...119 preserved in log: 2/2
+  PART 2 PASS
+```
+
+The script also creates the `AnKing::testing` subdeck (10 real USMLE cards,
+reset to new) as a small, reviewable deck for demoing the offline/conflict flow
+without touching the full 3.3 GB deck. `sync_fixup.py` resets those 10 cards to
+the new queue so they are due/reviewable on both devices.
 
 ## Storage note
 

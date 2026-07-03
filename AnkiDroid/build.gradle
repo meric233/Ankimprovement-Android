@@ -137,6 +137,16 @@ android {
 
         def apiKey = properties.getProperty("ANALYTICS_API_KEY") ?: System.getenv("ANALYTICS_API_KEY") ?: "DUMMY_API_XXX"
         buildConfigField "String", "ANALYTICS_API_KEY", "\"${apiKey}\""
+
+        // USMLE project: OpenAI key/model for the AI card-rephrase feature.
+        // Sourced from `local.properties` (OPENAI_API_KEY / OPENAI_MODEL) or the
+        // matching env vars — the same key the desktop reads from
+        // `ai_secrets.json`. Empty by default so contributor builds compile and
+        // the feature simply stays OFF (the app scores fine without AI).
+        def openaiKey = properties.getProperty("OPENAI_API_KEY") ?: System.getenv("OPENAI_API_KEY") ?: ""
+        buildConfigField "String", "OPENAI_API_KEY", "\"${openaiKey}\""
+        def openaiModel = properties.getProperty("OPENAI_MODEL") ?: System.getenv("OPENAI_MODEL") ?: "gpt-4o"
+        buildConfigField "String", "OPENAI_MODEL", "\"${openaiModel}\""
     }
     signingConfigs {
         release {

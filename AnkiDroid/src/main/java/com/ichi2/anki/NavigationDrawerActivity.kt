@@ -36,6 +36,8 @@ import com.google.android.material.navigation.NavigationView
 import com.ichi2.anki.CollectionManager.withCol
 import com.ichi2.anki.IntentHandler.Companion.grantedStoragePermissions
 import com.ichi2.anki.NoteEditorFragment.Companion.NoteEditorCaller
+import com.ichi2.anki.ai.AiRephrase
+import com.ichi2.anki.ai.AiRephraseController
 import com.ichi2.anki.cardviewer.UsmleFontChooser
 import com.ichi2.anki.common.android.animationEnabled
 import com.ichi2.anki.common.destinations.AdminSimulationDestination
@@ -244,6 +246,11 @@ abstract class NavigationDrawerActivity(
                 } == "learning"
             item.isChecked = learning
         }
+        // USMLE project: reflect the AI-rephrase toggle state too.
+        val aiItem = navigationView?.menu?.findItem(R.id.nav_ai_rephrase) ?: return
+        launchCatchingTask {
+            aiItem.isChecked = withCol { config.get(AiRephrase.CONFIG_ENABLED, false) } == true
+        }
     }
 
     /**
@@ -358,6 +365,21 @@ abstract class NavigationDrawerActivity(
                         if (learning) "learning" else "performance",
                     )
                 }
+            }
+            closeDrawer()
+            return true
+        }
+
+        // USMLE project: AI card-rephrase toggle (SPOV2). Flips the shared
+        // `aiRephraseEnabled` collection config (syncs with desktop) and, when
+        // turned on, kicks off the held-out preflight eval so its accuracy /
+        // wrong-answer-rate print to the log before any card is rephrased.
+        if (item.itemId == R.id.nav_ai_rephrase) {
+            val enabled = !item.isChecked
+            item.isChecked = enabled
+            launchCatchingTask {
+                withCol { config.set(AiRephrase.CONFIG_ENABLED, enabled) }
+                if (enabled) AiRephraseController.triggerPreflight(force = true)
             }
             closeDrawer()
             return true

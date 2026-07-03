@@ -11,20 +11,33 @@ of passing** with a range — never an invented score.
 
 ### Added in this fork
 
-- **Study dashboard** — three always-shown scores, each with a range: **Memory**
-  (mean FSRS recall), **Performance** (new-question accuracy; placeholder), and
-  **Readiness** (a calibrated **probability of passing**, not a score).
+- **AI question rephrasing** *(native, off by default)* — the same flagship AI
+  feature as desktop, ported to Kotlin (not just synced data). On an eligible
+  card an LLM (`gpt-4o`) rewords **only the question** (answer, medical terms,
+  numbers and cloze blanks stay verbatim); each reword is **source-traced** (note
+  id + text hash + model). A **held-out preflight eval** runs before any card is
+  rephrased and gates the feature; rewords show on first view with background
+  **prefetch**, and answering one nudges a per-card `performance` score + damps
+  FSRS to 0.5×. Toggle: nav drawer **"AI: rephrase cards"**. Wired into both the
+  legacy and new reviewers.
+- **Study dashboard** — three always-shown scores, each per **today / +5 / +10
+  day** horizon: **Memory** (mean FSRS recall), **Performance** (a blend of
+  `0.75 × Memory + 0.25 × per-card rephrasing score`, with a `0.9 × Memory`
+  fallback flagged when AI is off), and **Readiness** (a calibrated **probability
+  of passing**, = Performance × coverage; not a score, no range).
 - **Over-confidence view** — every score projected forward with no study at
   **today / +5 days / +10 days**.
 - **Coverage map** — % of the First Aid outline seen; Readiness abstains under a
-  give-up rule (≥ 200 graded reviews *and* ≥ 50 % coverage).
+  give-up rule (≥ 200 graded reviews, ≥ 50 % coverage, *and* Performance available).
 - **Forced UI randomization** — randomizes card fonts so you learn the content,
   not a card's look (toggleable).
-- **Admin / simulation mode** — dev screen to bulk-set FSRS state, advance days,
-  and reset cards, to exercise the dashboard.
+- **Admin / simulation mode** — dev screen to bulk-set FSRS state (and per-card
+  performance), advance days, and reset cards, to exercise the dashboard.
 
 > Build & emulator setup: [`docs/development/build-and-emulator-setup.md`](docs/development/build-and-emulator-setup.md).
 > Requires the custom backend AAR from the desktop side (`local_backend=true`).
+> The AI feature needs an OpenAI key in `local.properties`
+> (`OPENAI_API_KEY` / `OPENAI_MODEL`), compiled into `BuildConfig`; with no key it stays off.
 
 ---
 

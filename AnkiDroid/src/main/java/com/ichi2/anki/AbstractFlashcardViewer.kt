@@ -72,6 +72,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.ichi2.anki.AbstractFlashcardViewer.Signal.Companion.toSignal
 import com.ichi2.anki.CollectionManager.TR
 import com.ichi2.anki.CollectionManager.withCol
+import com.ichi2.anki.ai.AiRephraseController
 import com.ichi2.anki.android.AnkiShakeDetector
 import com.ichi2.anki.android.back.exitViaDoubleTapBackCallback
 import com.ichi2.anki.backend.stripHTMLAndSpecialFields
@@ -647,6 +648,8 @@ abstract class AbstractFlashcardViewer :
 
     override fun onDestroy() {
         super.onDestroy()
+        // USMLE: drop the re-render callback so we don't leak this Activity.
+        AiRephraseController.onRephraseReady = null
         if (this::server.isInitialized) {
             server.stop()
         }
@@ -1342,6 +1345,17 @@ abstract class AbstractFlashcardViewer :
         }
         updateCard(content)
         hideEaseButtons()
+        // USMLE: the first appearance of an eligible card renders the original
+        // (rendering can't block on the network); when the AI rewording lands in
+        // the cache moments later, re-render the question in place — like the
+        // desktop's first-view rephrase.
+        AiRephraseController.onRephraseReady = { cardId ->
+            if (!displayAnswer && currentCard?.id == cardId) {
+                cardRenderContext
+                    ?.renderCard(getColUnsafe, currentCard!!, SingleCardSide.FRONT)
+                    ?.let { updateCard(it) }
+            }
+        }
         // If Card-based TTS is enabled, we "automatic display" after the TTS has finished as we don't know the duration
         Timber.i(
             "AbstractFlashcardViewer:: Question successfully shown for card id %d",

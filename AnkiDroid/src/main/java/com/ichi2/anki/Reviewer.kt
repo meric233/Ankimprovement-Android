@@ -52,6 +52,7 @@ import com.ichi2.anki.CollectionManager.TR
 import com.ichi2.anki.CollectionManager.withCol
 import com.ichi2.anki.Whiteboard.Companion.createInstance
 import com.ichi2.anki.Whiteboard.OnPaintColorChangeListener
+import com.ichi2.anki.ai.AiRephraseController
 import com.ichi2.anki.cardviewer.Gesture
 import com.ichi2.anki.cardviewer.ViewerCommand
 import com.ichi2.anki.common.annotations.NeedsTest
@@ -1248,6 +1249,10 @@ open class Reviewer :
                 showSnackbar(leechMessage, Snackbar.LENGTH_SHORT)
             }
         }
+
+        // USMLE: if this card was shown AI-rephrased, nudge its perf score and
+        // damp the FSRS state change to 0.5x (folded into the answer's undo).
+        withCol { AiRephraseController.onAnswered(this, cardId, rating.number) }
 
         // showing the timebox reached dialog if the timebox is reached
         val timebox = withCol { timeboxReached() }

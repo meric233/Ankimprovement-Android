@@ -14,6 +14,7 @@ import com.ichi2.anki.CollectionManager.TR
 import com.ichi2.anki.CollectionManager.withCol
 import com.ichi2.anki.Flag
 import com.ichi2.anki.Reviewer
+import com.ichi2.anki.ai.AiRephraseController
 import com.ichi2.anki.asyncIO
 import com.ichi2.anki.cardviewer.SingleCardSide
 import com.ichi2.anki.common.annotations.NeedsTest
@@ -452,6 +453,13 @@ class ReviewerViewModel(
         }
     }
 
+    // USMLE: swap the question for an AI-reworded version when eligible. See
+    // [AiRephraseController]; the previewer keeps the default (no rephrase).
+    override suspend fun maybeRephraseQuestion(
+        card: Card,
+        questionData: String,
+    ): String = AiRephraseController.questionForDisplay(card, questionData)
+
     override suspend fun showQuestion() {
         Timber.v("ReviewerViewModel::showQuestion")
         super.showQuestion()
@@ -518,6 +526,9 @@ class ReviewerViewModel(
             }
 
         undoableOp(handler = this) { sched.answerCard(answer) }
+        // USMLE: if this card was shown AI-rephrased, nudge its perf score and
+        // damp the FSRS state change to 0.5x (folded into the answer's undo).
+        withCol { AiRephraseController.onAnswered(this, card.id, rating.number) }
         answerFeedbackFlow.emit(rating)
         savedStateHandle[KEY_PREVIOUS_CARD_ID] = card.id
 

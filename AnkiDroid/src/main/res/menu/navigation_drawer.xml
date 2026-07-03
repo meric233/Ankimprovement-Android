@@ -33,6 +33,11 @@
             android:checkable="true"
             android:icon="@drawable/ic_settings_black"
             android:title="@string/usmle_learning_mode"/>
+        <item
+            android:id="@+id/nav_ai_rephrase"
+            android:checkable="true"
+            android:icon="@drawable/ic_settings_black"
+            android:title="@string/usmle_ai_rephrase"/>
     </group>
     <group  android:id="@+id/group2">
         <item

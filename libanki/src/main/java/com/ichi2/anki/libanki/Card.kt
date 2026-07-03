@@ -103,13 +103,19 @@ open class Card : Cloneable {
     var oDue: Int = 0
     var oDid: DeckId = 0
     var originalPosition: Int? = null
+
+    // USMLE project: publicly settable so the AI-rephrase feature can nudge the
+    // per-card performance score (custom_data["perf"]) after a rephrased answer,
+    // mirroring the desktop `card.custom_data = ...`. Persist via col.updateCard.
     var customData: String = ""
-        private set
 
     @VisibleForTesting
     var flags = 0
+
+    // USMLE project: publicly settable so the AI-rephrase feature can damp the
+    // FSRS memory-state change on a rephrased answer, mirroring the desktop
+    // `card.memory_state = ...`. Persist via col.updateCard.
     var memoryState: FSRSMemoryState? = null
-        private set
     var desiredRetention: Float? = null
         private set
     var decay: Float? = null

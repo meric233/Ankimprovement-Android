@@ -113,6 +113,16 @@ abstract class CardViewerViewModel(
 
     protected abstract suspend fun typeAnsFilter(text: String): String
 
+    /**
+     * USMLE: hook for the AI-rephrase feature. The reviewer overrides this to
+     * swap the question for an AI-reworded version; the previewer keeps the
+     * default (identity) so previews are never rephrased.
+     */
+    protected open suspend fun maybeRephraseQuestion(
+        card: Card,
+        questionData: String,
+    ): String = questionData
+
     private suspend fun bodyClass() = bodyClassForCardOrd(currentCard.await().ord)
 
     /** From the [desktop code](https://github.com/ankitects/anki/blob/1ff55475b93ac43748d513794bcaabd5d7df6d9d/qt/aqt/reviewer.py#L358) */
@@ -130,7 +140,7 @@ abstract class CardViewerViewModel(
         showingAnswer.emit(false)
 
         val card = currentCard.await()
-        val questionData = withCol { card.question(this) }
+        val questionData = maybeRephraseQuestion(card, withCol { card.question(this) })
         val question = mungeQA(questionData)
         val answer =
             withCol { media.escapeMediaFilenames(card.answer(this)) }
