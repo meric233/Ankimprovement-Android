@@ -71,9 +71,6 @@ object AiRephraseController {
     private var preflightState = PreflightState.PENDING
     private val preflightLock = Any()
 
-    val hasApiKey: Boolean
-        get() = config != null
-
     // --- cache -----------------------------------------------------------
 
     private fun cacheFor(col: Collection): AiRephraseCache? {
