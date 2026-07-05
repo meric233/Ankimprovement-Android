@@ -75,11 +75,11 @@ object AiRephrasePreflight {
                 overlap = 1.0
                 wOk = false
             }
-            val mOk = out != null && sim >= AiRephrase.PREFLIGHT_SIM_CUTOFF
-            val eff = aOk && mOk && wOk
+            val meaningPass = out != null && sim >= AiRephrase.PREFLIGHT_SIM_CUTOFF
+            val eff = aOk && meaningPass && wOk
 
             if (aOk) answerOk++
-            if (mOk) meaningOk++
+            if (meaningPass) meaningOk++
             if (wOk) worded++
             if (eff) effective++
 

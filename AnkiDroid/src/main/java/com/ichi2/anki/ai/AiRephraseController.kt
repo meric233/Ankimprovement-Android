@@ -297,12 +297,12 @@ object AiRephraseController {
         card.customData = AiRephrase.withPerf(card.customData, updated)
 
         card.memoryState?.let { ms ->
-            val (sOld, dOld) = pre
+            val (oldStability, oldDifficulty) = pre
             card.memoryState =
                 ms
                     .toBuilder()
-                    .setStability(AiRephrase.damp(sOld, ms.stability))
-                    .setDifficulty(AiRephrase.damp(dOld, ms.difficulty))
+                    .setStability(AiRephrase.damp(oldStability, ms.stability))
+                    .setDifficulty(AiRephrase.damp(oldDifficulty, ms.difficulty))
                     .build()
         }
 
@@ -352,5 +352,7 @@ object AiRephraseController {
         ensurePreflight()
     }
 
+    // Cache metadata timestamp only (not scheduling); wall-clock is fine here.
+    @Suppress("DirectSystemCurrentTimeMillisUsage")
     private fun nowSecs(): Long = System.currentTimeMillis() / 1000
 }
